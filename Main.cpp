@@ -15,6 +15,10 @@ float Dzielenie();
 float Potega();
 float Square();
 float Logarytm();
+float sin();
+float cos();
+float ctg();
+float tg();
 float menu();
 void Type();
 
@@ -28,28 +32,37 @@ int main()
 
 float menu()
 {
-    int x;
+    char x;
     cout<<"Wybierz operacje: "<<endl;
-    cout<<"Dodawanie - 1"<<endl<<"Odejmowanie - 2"<<endl<<"Moznenie - 3"<<endl<<"Dzielenie - 4"<<endl<<"Potega - 5"<<endl<<"Pierwiastek kwadratowy - 6"<<endl<<"Logarytm naturalny - 7"<<endl<<"Powrot - 0"<<endl;
+    cout<<"Dodawanie - 1"<<endl<<"Odejmowanie - 2"<<endl<<"Moznenie - 3"<<endl<<"Dzielenie - 4"<<endl<<"Potega - 5"<<endl<<"Pierwiastek kwadratowy - 6"<<endl<<"Logarytm naturalny - 7"<<endl;
+    cout<<"Sinus - 8"<<endl<<"Cosinus - 9"<<endl<<"Tangens - t"<<endl<<"Cotangens - c"<<endl<<"Powrot - 0"<<endl;
     cin >>x;
     switch(x)
     {
-        case 0:
+        case '0':
             return 0;
-        case 1:
+        case '1':
             return Dodawanie();
-        case 2:
+        case '2':
             return Odejmowanie();
-        case 3:
+        case '3':
             return Mnozenie();
-        case 4:
+        case '4':
             return Dzielenie();
-        case 5:
+        case '5':
             return Potega();
-        case 6:
+        case '6':
             return Square();
-        case 7:
+        case '7':
             return Logarytm();
+        case '8':
+            return sin();
+        case '9':
+            return cos();
+        case 't':
+            return tg();
+        case 'c':
+            return ctg();
         default:
             cout<<"Zly wybor!";
             return 0;
@@ -230,3 +243,76 @@ float Logarytm()
 
     return wynik_fl;
 }
+
+float sin()
+{
+    float first_fl = (float)first;
+
+    __asm__(
+        "fld %1;"
+        "fsin;"
+        "fstp %0;"
+
+        : "=m" (wynik_fl)
+        : "g" (first_fl)
+    );
+
+    return wynik_fl;
+}
+
+float cos()
+{
+        float first_fl = (float)first;
+
+    __asm__(
+        "fld %1;"
+        "fcos;"
+        "fstp %0;"
+
+        : "=m" (wynik_fl)
+        : "g" (first_fl)
+    );
+
+    return wynik_fl;
+
+}
+
+float tg()
+{
+    
+    float first_fl = (float)first;
+
+    __asm__(
+        "fld %1;"
+        "fcos;"
+        "fld %1;"
+        "fsin;"
+        "fdivp;"
+        "fstp %0;"
+
+        : "=m" (wynik_fl)
+        : "g" (first_fl)
+    );
+
+    return wynik_fl;
+}
+
+float ctg()
+{
+    float first_fl = (float)first;
+
+    __asm__(
+        "fld %1;"
+        "fsin;"
+        "fld %1;"
+        "fcos;"
+        "fdivp;"
+        "fstp %0;"
+
+        : "=m" (wynik_fl)
+        : "g" (first_fl)
+    );
+
+    return wynik_fl;
+}
+
