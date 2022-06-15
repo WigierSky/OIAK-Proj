@@ -3,23 +3,25 @@
 using namespace std;
 
 int first;
+double first_fl;
+double second_fl;
 int second;
 int wynik;
-float wynik_fl;
+double wynik_fl;
 int reszta;
 
-float Dodawanie();
-float Odejmowanie();
-float Mnozenie();
-float Dzielenie();
-float Potega();
-float Square();
-float Logarytm();
-float sin();
-float cos();
-float ctg();
-float tg();
-float menu();
+double Dodawanie();
+double Odejmowanie();
+double Mnozenie();
+double Dzielenie();
+double Potega();
+double Square();
+double Logarytm();
+double sin();
+double cos();
+double ctg();
+double tg();
+double menu();
 void Type();
 
 int main()
@@ -30,7 +32,7 @@ int main()
 }
 
 
-float menu()
+double menu()
 {
     char x;
     cout<<"Wybierz operacje: "<<endl;
@@ -77,7 +79,7 @@ void Type()
 while(true)
 {
     cout<<"W jakim systemie chcesz podać liczbe?"<<endl;
-    cout<<"Dziesietnym - 1"<<endl<<"Szestnastkowym - 2"<<endl<<"Wyjscie - 0"<<endl;
+    cout<<"Dziesietnym - 1"<<endl<<"Szestnastkowym - 2 (UWAGA! Przy skompliwanych operacjach traci dokładność!)"<<endl<<"Wyjscie - 0"<<endl;
     cin>>x;
 
     switch(x)
@@ -86,23 +88,28 @@ while(true)
             return;
         case 1:{
             cout<<"Podaj liczby w dziesietnym: "<<endl;
-            cin>>first;
-            cin>>second;
+            cin>>first_fl;
+            cin>>second_fl;
             cout<<endl;
-            float z = menu();
+            double z = menu();
             cout<<endl<<"Wynik w dziesietnym: ";
             cout<<z<<endl;
-            wynik = 0;}
+            wynik_fl = 0;
+            }
             break;
         case 2:{
             cout<<"Podaj liczby w szestnastkowym: "<<endl;
             cin>>hex>>first;
             cin>>hex>>second;
+            first_fl = (double)first;
+            second_fl = (double)second;
             cout<<endl;
-            float z = menu();
+            double z = menu();
+            int wyn = (int)z;
             cout<<endl<<"Wynik w szestnastkowym: ";
-            cout<<hex<<z<<endl;
-            wynik = 0;}
+            cout<<hex<<wyn<<endl;
+            wynik_fl = 0;
+            }
             break;
         default:
             cout<<"Nie ma takiej opcji!"<<endl;
@@ -111,75 +118,112 @@ while(true)
 }
 }
 
-float Dodawanie()
-{
-   __asm__  ( 
-    "movl %1, %%eax;"
-    "movl %2, %%ebx;"
-    "addl %%ebx, %%eax;"
-    "movl %%eax, %0;" 
-    
-    : "=a" (wynik) 
-    : "a" (first) , "b" (second)   
-    );
-
-    wynik_fl = (float)wynik;
-    return wynik_fl;
-}
-
-
-
-float Odejmowanie()
-{
-    __asm__ (
-        "movl %1, %%eax;"
-        "movl %2, %%ebx;"
-        "subl %%ebx, %%eax;"
-        "movl %%eax, %0;"
-
-        : "=a" (wynik) 
-        : "a" (first) , "b" (second) 
-    );
-
-    wynik_fl = (float)wynik;
-    return wynik_fl;
-}
-
-float Mnozenie()
+double Dodawanie()
 {
     __asm__(
-        "movl %1, %%eax;"
-        "movl %2, %%ebx;"
-        "imull %%ebx, %%eax;"
-        "movl %%eax, %0;"
+        "fldl %1;"
+        "fldl %2;"
+        "faddp;"
+        "fstpl %0;"
 
-        : "=a" (wynik) 
-        : "a" (first) , "b" (second) 
+       : "=m" (wynik_fl)
+       : "m" (first_fl), "m" (second_fl)
     );
 
-    wynik_fl = (float)wynik;
     return wynik_fl;
 }
 
-float Dzielenie()
+double Odejmowanie()
 {
     __asm__(
-        "movl $0x0, %%edx;"
+        "fldl %1;"
+        "fldl %2;"
+        "fsubrp;"
+        "fstpl %0;"
+
+       : "=m" (wynik_fl)
+       : "m" (first_fl), "m" (second_fl)
+    );
+
+    return wynik_fl;
+}
+
+double Mnozenie()
+{
+
+    __asm__(
+        "fldl %1;"
+        "fldl %2;"
+        "fmulp;"
+        "fstpl %0;"
+
+       : "=m" (wynik_fl)
+       : "m" (first_fl), "m" (second_fl)
+    );
+
+    return wynik_fl;
+}
+
+double Dzielenie()
+{
+     __asm__(
+        "fldl %1;"
+        "fldl %2;"
+        "fdivrp;"
+        "fstpl %0;"
+
+       : "=m" (wynik_fl)
+       : "m" (first_fl), "m" (second_fl)
+    );
+
+    return wynik_fl;
+}
+
+double Potega()
+{
+    /*
+    __asm__(
+
+        "fld1;"
+        "cmpl $0, %2;" //??
+        "jg loop;"
+        "je ending;"   //jesli zero to zwroci 1
+        "fldl %1;"   //jesli mniejszy od zera to odwrotnosc
+        "fdivrp;"
+        "fstpl %1;"
+        "fld1;"
+
         "movl %2, %%eax;"
-        "movl %3, %%ebx;"
-        "idivl %%ebx;"
+        "imull $-1, %%eax;"
+        "movl %%eax, %2;"
 
-        : "=a" (wynik), "=d" (reszta)
-        : "a" (first), "b" (second)
+        "loop:"
+        "fldl %1;"
+        "fmulp;"
+        "fstpl %0;"
+
+        "fldl %2;"
+        "fld1;"
+        "fsubrp;"
+        "fstpl %2;"
+        "fldl %1;"
+        "fldl %0;"
+
+        "cmpl $0, %2;" //??
+        "jne loop;"
+
+        "ending:"
+        "fstpl %0;"
+
+        : "=m" (wynik_fl)
+        : "m" (first_fl), "m" (second_fl)
     );
-
-    cout<<endl<<"Reszta: "<<reszta;
-    wynik_fl = (float)wynik;
     return wynik_fl;
-}
+    */
+    
+    first = (int) first_fl;
+    second = (int) second_fl;
 
-float Potega()
-{
     __asm__(
     "movl %1, %%eax;"
     "movl %%eax, %%ecx;"
@@ -204,115 +248,100 @@ float Potega()
     : "a" (first) , "b" (second) 
     );
 
-    wynik_fl = (float)wynik;
+    wynik_fl = (double)wynik;
     return wynik_fl;
 }
 
 
-float Square()
+double Square()
 {
-    float first_fl = (float)first;
-    
     __asm__(
-       "fld %1;"
+       "fldl %1;"
        "fsqrt;"
-       "fstp %0;"
+       "fstpl %0;"
 
        : "=m" (wynik_fl)
-       : "g" (first_fl)
+       : "m" (first_fl)
     );
 
     return wynik_fl;
 }
 
-float Logarytm()
+double Logarytm()
 {
-    float first_fl = (float)first;
-
     __asm__(
         "fld1;"
-        "fld %1;"
+        "fldl %1;"
         "fyl2x;"
         "fldl2e;"
         "fdivrp;"
-        "fstp %0;"
+        "fstpl %0;"
 
         : "=m" (wynik_fl)
-        : "g" (first_fl)
+        : "m" (first_fl)
     );
 
     return wynik_fl;
 }
 
-float sin()
+double sin()
 {
-    float first_fl = (float)first;
-
     __asm__(
-        "fld %1;"
+        "fldl %1;"
         "fsin;"
-        "fstp %0;"
+        "fstpl %0;"
 
         : "=m" (wynik_fl)
-        : "g" (first_fl)
+        : "m" (first_fl)
     );
 
     return wynik_fl;
 }
 
-float cos()
+double cos()
 {
-        float first_fl = (float)first;
-
     __asm__(
-        "fld %1;"
+        "fldl %1;"
         "fcos;"
-        "fstp %0;"
+        "fstpl %0;"
 
         : "=m" (wynik_fl)
-        : "g" (first_fl)
+        : "m" (first_fl)
     );
 
     return wynik_fl;
-
 }
 
-float tg()
+double tg()
 {
-    
-    float first_fl = (float)first;
-
     __asm__(
-        "fld %1;"
+        "fldl %1;"
         "fcos;"
-        "fld %1;"
+        "fldl %1;"
         "fsin;"
         "fdivp;"
-        "fstp %0;"
+        "fstpl %0;"
 
         : "=m" (wynik_fl)
-        : "g" (first_fl)
+        : "m" (first_fl)
     );
 
     return wynik_fl;
 }
 
-float ctg()
+double ctg()
 {
-    float first_fl = (float)first;
-
     __asm__(
-        "fld %1;"
+        "fldl %1;"
         "fsin;"
-        "fld %1;"
+        "fldl %1;"
         "fcos;"
         "fdivp;"
-        "fstp %0;"
+        "fstpl %0;"
 
         : "=m" (wynik_fl)
-        : "g" (first_fl)
+        : "m" (first_fl)
     );
 
     return wynik_fl;
 }
-
